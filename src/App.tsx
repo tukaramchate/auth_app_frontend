@@ -1,17 +1,11 @@
-import './index.css'
-import { Button } from './components/ui/button'
-import { Calendar } from './components/ui/calendar'
-import { Label } from './components/ui/label'
-
+import "./App.css";
+import FuturisticAuthHome from "./components/home/FuturisticAuthHome";
 function App() {
-
   return (
     <div>
-      <Button> Click me </Button>
-      <Calendar />
-      <Label> Sample Label </Label>
-      </div>
-  )
+      <FuturisticAuthHome />
+    </div>
+  );
 }
 
-export default App
+export default App;
