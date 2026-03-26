@@ -3,10 +3,12 @@ import Navbar from "../components/Navbar";
 import { Toaster } from "react-hot-toast";
 function RootLayout() {
   return (
-    <div>
+    <div className="min-h-screen">
       <Toaster />
       <Navbar />
-      <Outlet />
+      <main className="mx-auto w-full">
+        <Outlet />
+      </main>
     </div>
   );
 }

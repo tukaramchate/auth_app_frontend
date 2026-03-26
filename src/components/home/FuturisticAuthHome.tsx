@@ -2,17 +2,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Shield, Lock, Sparkles, Fingerprint } from "lucide-react";
+import logo from "@/assets/logo.jpg";
 
 export default function FuturisticAuthHome() {
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground transition-colors overflow-hidden aurora-panel">
       {/* Hero Section */}
-      <section className="relative py-28 px-6 text-center flex flex-col items-center justify-center">
+      <section className="relative py-20 md:py-28 px-4 sm:px-6 text-center flex flex-col items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-70">
+          <div className="float-soft absolute -top-20 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+          <div className="float-soft absolute right-10 top-24 h-40 w-40 rounded-full bg-emerald-300/20 blur-3xl" />
+        </div>
+
+        <motion.img
+          src={logo}
+          alt="Authenfy logo"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6 h-20 w-20 sm:h-24 sm:w-24 rounded-2xl object-cover ring-1 ring-border shadow-lg"
+        />
+
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold tracking-tight"
+          className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight"
         >
           Secure. Fast. Futuristic.
         </motion.h1>
@@ -30,7 +45,7 @@ export default function FuturisticAuthHome() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="mt-10 flex gap-4"
+          className="mt-10 flex flex-col sm:flex-row gap-4"
         >
           <Button size="lg" className="rounded-2xl text-lg px-6">
             Get Started
@@ -46,8 +61,8 @@ export default function FuturisticAuthHome() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6">
-        <h2 className="text-4xl font-bold text-center mb-16">
+      <section className="py-16 md:py-24 px-4 sm:px-6">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 md:mb-16">
           Powerful Features
         </h2>
 
@@ -73,6 +88,7 @@ export default function FuturisticAuthHome() {
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -8 }}
               transition={{ duration: 0.6, delay: i * 0.2 }}
               viewport={{ once: true }}
             >
@@ -91,8 +107,8 @@ export default function FuturisticAuthHome() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-28 px-6 text-center bg-card/50 backdrop-blur-lg border-t border-border">
-        <h2 className="text-4xl font-bold">Start Securing Your App Today</h2>
+      <section className="py-20 md:py-28 px-4 sm:px-6 text-center bg-card/50 backdrop-blur-lg border-t border-border">
+        <h2 className="text-3xl md:text-4xl font-bold">Start Securing Your App Today</h2>
         <p className="mt-4 max-w-xl mx-auto text-muted-foreground text-lg">
           Join thousands of developers already building with our authentication
           system.
@@ -104,8 +120,8 @@ export default function FuturisticAuthHome() {
       </section>
 
       {/* Extra Section — Why Choose Us */}
-      <section className="py-24 px-6">
-        <h2 className="text-4xl font-bold text-center mb-12">
+      <section className="py-16 md:py-24 px-4 sm:px-6">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
           Why Choose Our Auth Platform?
         </h2>
 
@@ -155,7 +171,7 @@ export default function FuturisticAuthHome() {
 
       {/* Footer */}
       <footer className="py-10 text-center text-muted-foreground border-t border-border">
-        © {new Date().getFullYear()} Futuristic Auth. All rights reserved.
+        © {new Date().getFullYear()} AUTHENFY. Developed by Tukaram Chate.
       </footer>
     </div>
   );

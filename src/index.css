@@ -115,6 +115,61 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 12% 12%, oklch(0.92 0.04 250 / 0.38), transparent 38%),
+      radial-gradient(circle at 88% 22%, oklch(0.86 0.07 160 / 0.28), transparent 36%),
+      linear-gradient(180deg, oklch(1 0 0), oklch(0.99 0.01 250));
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at 14% 10%, oklch(0.34 0.08 250 / 0.45), transparent 40%),
+      radial-gradient(circle at 86% 18%, oklch(0.38 0.09 165 / 0.3), transparent 36%),
+      linear-gradient(180deg, oklch(0.145 0 0), oklch(0.17 0.01 250));
+  }
+}
+
+@layer utilities {
+  .aurora-panel {
+    background-image:
+      radial-gradient(circle at 20% 20%, oklch(0.87 0.08 250 / 0.35), transparent 30%),
+      radial-gradient(circle at 80% 0%, oklch(0.9 0.08 160 / 0.24), transparent 34%);
+  }
+
+  .dark .aurora-panel {
+    background-image:
+      radial-gradient(circle at 22% 18%, oklch(0.42 0.1 250 / 0.34), transparent 32%),
+      radial-gradient(circle at 78% 4%, oklch(0.43 0.09 165 / 0.28), transparent 34%);
+  }
+
+  .float-soft {
+    animation: float-soft 6s ease-in-out infinite;
+  }
+
+  .slide-fade-in {
+    animation: slide-fade-in 0.5s ease-out;
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Chrome, Github } from "lucide-react";
+import { Chrome, Github, Linkedin } from "lucide-react";
 import { NavLink } from "react-router";
 
 function OAuth2Buttons() {
@@ -32,6 +32,21 @@ function OAuth2Buttons() {
           className="w-full flex cursor-pointer items-center gap-3 rounded-2xl"
         >
           <Github className="w-5 h-5" /> Continue with GitHub
+        </Button>
+      </NavLink>
+
+      <NavLink
+        to={`${
+          import.meta.env.VITE_BASE_URL || "http://localhost:8083"
+        }/oauth2/authorization/linkedin`}
+        className={"block"}
+      >
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full flex cursor-pointer items-center gap-3 rounded-2xl"
+        >
+          <Linkedin className="w-5 h-5" /> Continue with LinkedIn
         </Button>
       </NavLink>
     </div>

@@ -15,6 +15,8 @@ type AuthState = {
   user: User | null;
   authStatus: boolean;
   authLoading: boolean;
+  hasRole: (roleName: string) => boolean;
+  isAdmin: () => boolean;
   login: (loginData: LoginData) => Promise<LoginResponseData>;
   logout: (silent?: boolean) => void;
   checkLogin: () => boolean | undefined;
@@ -34,6 +36,16 @@ const useAuth = create<AuthState>()(
       user: null,
       authStatus: false,
       authLoading: false,
+
+      hasRole: (roleName) => {
+        const roles = get().user?.roles ?? [];
+        return roles.some((role) => role.name === roleName);
+      },
+
+      isAdmin: () => {
+        const roles = get().user?.roles ?? [];
+        return roles.some((role) => role.name === "ADMIN");
+      },
 
       changeLocalLoginData: (accessToken, user, authStatus) => {
         set({
@@ -88,7 +100,7 @@ const useAuth = create<AuthState>()(
       },
       checkLogin: () => {
         if (get().accessToken && get().authStatus) return true;
-        else false;
+        return false;
       },
     }),
 

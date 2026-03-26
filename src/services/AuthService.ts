@@ -38,4 +38,59 @@ export const refreshToken = async () => {
   return response.data;
 };
 
-//apis
+export const verifyEmail = async (token: string) => {
+  const response = await apiClient.get<{ message: string }>(
+    `/auth/verify-email?token=${encodeURIComponent(token)}`
+  );
+  return response.data;
+};
+
+export const resendVerification = async (email: string) => {
+  const response = await apiClient.post<{ message: string }>(
+    `/auth/resend-verification`,
+    { email }
+  );
+  return response.data;
+};
+
+export const forgotPassword = async (email: string) => {
+  const response = await apiClient.post<{ message: string }>(
+    `/auth/forgot-password`,
+    { email }
+  );
+  return response.data;
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  const response = await apiClient.post<{ message: string }>(
+    `/auth/reset-password`,
+    { token, newPassword }
+  );
+  return response.data;
+};
+
+export const getAllUsersByAdmin = async () => {
+  const response = await apiClient.get<User[]>(`/users`);
+  return response.data;
+};
+
+type AdminCreateUserPayload = {
+  email: string;
+  name: string;
+  password: string;
+  enabled?: boolean;
+};
+
+export const createUserByAdmin = async (payload: AdminCreateUserPayload) => {
+  const response = await apiClient.post<User>(`/users`, {
+    email: payload.email,
+    name: payload.name,
+    password: payload.password,
+    enable: payload.enabled ?? true,
+  });
+  return response.data;
+};
+
+export const deleteUserByAdmin = async (userId: string) => {
+  await apiClient.delete(`/users/${userId}`);
+};

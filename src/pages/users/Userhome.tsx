@@ -25,19 +25,20 @@ function Userhome() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen text-foreground px-4 py-6 sm:p-6">
+      <div className="mx-auto w-full max-w-6xl">
       {/* Page Title */}
       <motion.h1
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-4xl font-bold mb-8"
+        className="text-3xl sm:text-4xl font-bold mb-8"
       >
         Dashboard Overview
       </motion.h1>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-10">
         {[
           {
             title: "Total Logins",
@@ -61,8 +62,8 @@ function Userhome() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: i * 0.1 }}
           >
-            <Card className="bg-card/70 backdrop-blur-lg border-border rounded-2xl shadow-lg">
-              <CardContent className="p-6 flex items-center gap-4">
+            <Card className="bg-card/70 backdrop-blur-lg border-border rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-5 sm:p-6 flex items-center gap-4">
                 <div className="p-3 bg-muted rounded-xl">{stat.icon}</div>
                 <div>
                   <p className="text-muted-foreground text-sm">{stat.title}</p>
@@ -81,7 +82,7 @@ function Userhome() {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <Card className="bg-card/70 backdrop-blur-lg border-border rounded-2xl shadow-lg mb-10">
-          <CardContent className="p-6">
+          <CardContent className="p-5 sm:p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <BarChart3 className="w-6 h-6 text-primary" /> Recent Activity
             </h2>
@@ -97,11 +98,12 @@ function Userhome() {
 
       {/* Dummy CTA */}
       <div className="text-center">
-        <Button onClick={getUserData} className="rounded-2xl px-8 text-lg">
+        <Button onClick={getUserData} className="rounded-2xl px-6 sm:px-8 text-base sm:text-lg">
           Get current user
         </Button>
 
-        <p>{user1?.name}</p>
+        <p className="mt-4 text-muted-foreground">{user1?.name}</p>
+      </div>
       </div>
     </div>
   );

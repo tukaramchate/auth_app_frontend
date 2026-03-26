@@ -7,7 +7,7 @@ import { Mail, Lock, CheckCircle2Icon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import type LoginData from "@/models/LoginData";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import useAuth from "@/auth/store";
@@ -75,21 +75,21 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4 py-10">
+    <div className="min-h-screen flex items-center justify-center text-foreground px-4 py-8 sm:py-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md aurora-panel rounded-3xl p-2"
       >
-        <Card className="bg-card/70 backdrop-blur-xl border-border shadow-2xl rounded-2xl p-6">
+        <Card className="bg-card/80 backdrop-blur-xl border-border shadow-2xl rounded-2xl p-4 sm:p-6">
           <CardContent>
             {/* Heading */}
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl font-bold text-center"
+              className="text-3xl sm:text-4xl font-bold text-center"
             >
               Welcome Back
             </motion.h1>
@@ -118,7 +118,7 @@ function Login() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleFormSubmit} className="mt-8 space-y-6">
+            <form onSubmit={handleFormSubmit} className="mt-8 space-y-5 sm:space-y-6">
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -151,11 +151,16 @@ function Login() {
                     onChange={handleInputChange}
                   />
                 </div>
+                <div className="text-right">
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
               </div>
 
               <Button
                 disabled={loading}
-                className="w-full cursor-pointer rounded-2xl text-lg"
+                className="w-full cursor-pointer rounded-2xl text-base sm:text-lg"
               >
                 {loading ? (
                   <>

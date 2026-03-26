@@ -56,14 +56,13 @@ function Signup() {
     try {
       const result = await registerUser(data);
       console.log(result);
-      toast.success("User register successfully...");
+      toast.success("Registration successful. Please verify your email.");
       setData({
         name: "",
         email: "",
         password: "",
       });
-      //navigate : login
-      navigate("/login");
+      navigate(`/verify-email?email=${encodeURIComponent(result.email)}`);
     } catch (error) {
       console.log(error);
       toast.error("Error in registering the user...");
@@ -71,21 +70,21 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4 py-10">
+    <div className="min-h-screen flex items-center justify-center text-foreground px-4 py-8 sm:py-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md aurora-panel rounded-3xl p-2"
       >
-        <Card className="bg-card/70 backdrop-blur-xl border-border shadow-2xl rounded-2xl p-6">
+        <Card className="bg-card/80 backdrop-blur-xl border-border shadow-2xl rounded-2xl p-4 sm:p-6">
           <CardContent>
             {/* Heading */}
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl font-bold text-center"
+              className="text-3xl sm:text-4xl font-bold text-center"
             >
               Create Your Account
             </motion.h1>
@@ -100,7 +99,7 @@ function Signup() {
             </motion.p>
 
             {/* Form */}
-            <form onSubmit={handleFormSubmit} className="mt-8 space-y-6">
+            <form onSubmit={handleFormSubmit} className="mt-8 space-y-5 sm:space-y-6">
               {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -152,7 +151,7 @@ function Signup() {
                 </div>
               </div>
 
-              <Button className="w-full rounded-2xl text-lg">Sign Up</Button>
+              <Button className="w-full rounded-2xl text-base sm:text-lg">Sign Up</Button>
 
               {/* Divider */}
               <div className="flex items-center gap-4 my-4">

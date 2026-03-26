@@ -1,6 +1,7 @@
 import useAuth from "@/auth/store";
 import { refreshToken } from "@/services/AuthService";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8083/api/v1",
@@ -37,7 +38,13 @@ function resolveQueue(newToken: string) {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const is401 = error.response.status === 401;
+    const status = error?.response?.status;
+    if (status === 403) {
+      toast.error("Access denied");
+      return Promise.reject(error);
+    }
+
+    const is401 = status === 401;
     const original = error.config;
     console.log(original);
     console.log("original retry: ", original._retry);

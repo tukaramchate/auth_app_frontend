@@ -1,3 +1,5 @@
+import type Role from "./Role";
+
 export default interface User {
   id: string;
   email: string;
@@ -7,4 +9,5 @@ export default interface User {
   updatedAt?: string;
   createdAt?: string;
   provider: string;
+  roles?: Role[];
 }
