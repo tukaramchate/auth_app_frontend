@@ -3,23 +3,20 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { BarChart3, User, ShieldCheck, Activity } from "lucide-react";
 import { getCurrentUser } from "@/services/AuthService";
-import useAuth from "@/auth/store";
 import { useState } from "react";
 import type UserT from "@/models/User";
 import toast from "react-hot-toast";
 
 function Userhome() {
-  const user = useAuth((state) => state.user);
   const [user1, setUser1] = useState<UserT | null>(null);
 
   const getUserData = async () => {
     try {
-      const user1 = await getCurrentUser(user?.email);
+      const user1 = await getCurrentUser();
 
       setUser1(user1);
       toast.success("you are able to access secured apis")
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("error in getting data");
     }
   };

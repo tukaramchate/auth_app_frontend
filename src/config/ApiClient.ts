@@ -1,10 +1,35 @@
 import useAuth from "@/auth/store";
-import { refreshToken } from "@/services/AuthService";
-import axios from "axios";
+import axios, {
+  AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import toast from "react-hot-toast";
 
+type LoginResponseData = {
+  accessToken: string;
+  expiresIn: number;
+  tokenType: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    enabled: boolean;
+    provider: string;
+    roles?: Array<{ name: string }>;
+  };
+};
+
+type RetryRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+};
+
+type PendingCallback = (newToken: string) => void;
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8083/api/v1";
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8083/api/v1",
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,7 +37,15 @@ const apiClient = axios.create({
   timeout: 10000,
 });
 
-//every request: before
+export const refreshClient = axios.create({
+  baseURL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+  timeout: 10000,
+});
+
 apiClient.interceptors.request.use((config) => {
   const accessToken = useAuth.getState().accessToken;
   if (accessToken) {
@@ -23,9 +56,9 @@ apiClient.interceptors.request.use((config) => {
 });
 
 let isRefreshing = false;
-let pending: any[] = [];
+let pending: PendingCallback[] = [];
 
-function queueRequest(cb: any) {
+function queueRequest(cb: PendingCallback) {
   pending.push(cb);
 }
 
@@ -34,10 +67,9 @@ function resolveQueue(newToken: string) {
   pending = [];
 }
 
-// response interceptors
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  async (error: AxiosError) => {
     const status = error?.response?.status;
     if (status === 403) {
       toast.error("Access denied");
@@ -45,50 +77,55 @@ apiClient.interceptors.response.use(
     }
 
     const is401 = status === 401;
-    const original = error.config;
-    console.log(original);
-    console.log("original retry: ", original._retry);
-    if (!is401 || original._retry) {
-      //message:
+    const original = error.config as RetryRequestConfig | undefined;
+    if (!original) {
+      return Promise.reject(error);
+    }
+
+    const isRefreshEndpoint = original.url?.includes("/auth/refresh") ?? false;
+    if (!is401 || original._retry || isRefreshEndpoint) {
       return Promise.reject(error);
     }
 
     original._retry = true;
-    //we will try to refresh the token:
+
     if (isRefreshing) {
-      console.log("added to queue");
       return new Promise((resolve, reject) => {
         queueRequest((newToken: string) => {
-          if (!newToken) return reject();
+          if (!newToken) {
+            reject(error);
+            return;
+          }
+
           original.headers.Authorization = `Bearer ${newToken}`;
           resolve(apiClient(original));
         });
       });
     }
 
-    //start refresh
     isRefreshing = true;
 
     try {
-      console.log("start refreshing...");
-      const loginResponse = await refreshToken();
-      const newToken = loginResponse.accessToken;
-      if (!newToken) throw new Error("no access token received");
+      const loginResponse: AxiosResponse<LoginResponseData> =
+        await refreshClient.post<LoginResponseData>("/auth/refresh");
+      const loginResponseData = loginResponse.data;
+      const newToken = loginResponseData.accessToken;
+
+      if (!newToken) {
+        throw new Error("No access token received");
+      }
+
       useAuth
         .getState()
-        .changeLocalLoginData(
-          loginResponse.accessToken,
-          loginResponse.user,
-          true
-        );
-      //
+        .changeLocalLoginData(newToken, loginResponseData.user, true);
+
       resolveQueue(newToken);
       original.headers.Authorization = `Bearer ${newToken}`;
       return apiClient(original);
-    } catch (error) {
-      resolveQueue("null");
+    } catch (refreshError) {
+      resolveQueue("");
       useAuth.getState().logout();
-      return Promise.reject(error);
+      return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
     }

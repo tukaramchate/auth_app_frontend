@@ -3,7 +3,7 @@ import type LoginResponseData from "@/models/LoginResponseData";
 import type User from "@/models/User";
 import { loginUser, logoutUser } from "@/services/AuthService";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, type PersistOptions } from "zustand/middleware";
 
 const LOCAL_KEY = "app_state";
 //type AuthStatus = "idle" | "authenticating" | "authenticated" | "anonymous";
@@ -26,6 +26,16 @@ type AuthState = {
     user: User,
     authStatus: boolean
   ) => void;
+};
+
+type AuthPersistState = Pick<AuthState, "user" | "authStatus">;
+
+const persistOptions: PersistOptions<AuthState, AuthPersistState> = {
+  name: LOCAL_KEY,
+  partialize: (state) => ({
+    user: state.user,
+    authStatus: state.authStatus,
+  }),
 };
 
 //main logic for global state
@@ -55,20 +65,15 @@ const useAuth = create<AuthState>()(
         });
       },
       login: async (loginData) => {
-        console.log("started login...");
         set({ authLoading: true });
         try {
           const loginResponseData = await loginUser(loginData);
-          console.log(loginResponseData);
           set({
             accessToken: loginResponseData.accessToken,
             user: loginResponseData.user,
             authStatus: true,
           });
           return loginResponseData;
-        } catch (error) {
-          console.log(error);
-          throw error;
         } finally {
           set({
             authLoading: false,
@@ -84,7 +89,8 @@ const useAuth = create<AuthState>()(
             authLoading: true,
           });
           await logoutUser();
-        } catch (error) {
+        } catch {
+          // Ignore remote logout failures and clear local session regardless.
         } finally {
           set({
             authLoading: false,
@@ -104,7 +110,7 @@ const useAuth = create<AuthState>()(
       },
     }),
 
-    { name: LOCAL_KEY }
+    persistOptions
   )
 );
 

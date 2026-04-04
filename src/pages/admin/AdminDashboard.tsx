@@ -49,7 +49,7 @@ function AdminDashboard() {
     try {
       const response = await getAllUsersByAdmin();
       setUsers(response);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ function AdminDashboard() {
       toast.success("User created");
       setForm(initialForm);
       await loadUsers();
-    } catch (error) {
+    } catch {
       toast.error("Could not create user");
     } finally {
       setCreating(false);
@@ -105,7 +105,7 @@ function AdminDashboard() {
       await deleteUserByAdmin(targetUser.id);
       toast.success("User deleted");
       await loadUsers();
-    } catch (error) {
+    } catch {
       toast.error("Could not delete user");
     }
   };

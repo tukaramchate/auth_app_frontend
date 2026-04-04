@@ -7,6 +7,11 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useSearchParams } from "react-router";
+import type { AxiosError } from "axios";
+
+type ApiErrorPayload = {
+  message?: string;
+};
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -31,10 +36,11 @@ function VerifyEmail() {
         await verifyEmail(token);
         setVerified(true);
         toast.success("Email verified successfully.");
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError<ApiErrorPayload>;
         const message =
-          error?.response?.data?.message ||
-          error?.message ||
+          axiosError.response?.data?.message ||
+          axiosError.message ||
           "Unable to verify email.";
         toast.error(message);
       } finally {
@@ -57,10 +63,11 @@ function VerifyEmail() {
     try {
       await resendVerification(email.trim());
       toast.success("Verification email sent.");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorPayload>;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
+        axiosError.response?.data?.message ||
+        axiosError.message ||
         "Unable to resend verification email.";
       toast.error(message);
     } finally {

@@ -8,6 +8,11 @@ import { Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import type { AxiosError } from "axios";
+
+type ApiErrorPayload = {
+  message?: string;
+};
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -47,10 +52,11 @@ function ResetPassword() {
       await resetPassword(token, password);
       toast.success("Password reset successful");
       navigate("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorPayload>;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
+        axiosError.response?.data?.message ||
+        axiosError.message ||
         "Unable to reset password.";
       toast.error(message);
     } finally {

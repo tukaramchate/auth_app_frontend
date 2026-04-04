@@ -11,6 +11,7 @@ import Userlayout from "./pages/users/Userlayout.tsx";
 import Userhome from "./pages/users/Userhome.tsx";
 import Userprofile from "./pages/users/Userprofile.tsx";
 import OAuthSuccess from "./pages/OAuthSuccess.tsx";
+import OAuthFailure from "./pages/OAuthFailure.tsx";
 import VerifyEmail from "./pages/VerifyEmail.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
@@ -43,7 +44,7 @@ createRoot(document.getElementById("root")!).render(
             </Route>
           </Route>
           <Route path="oauth/success" element={<OAuthSuccess />} />
-          <Route path="oauth/failure" element={<OAuthSuccess />} />
+          <Route path="oauth/failure" element={<OAuthFailure />} />
         </Route>
       </Routes>
     </BrowserRouter>

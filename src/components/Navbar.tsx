@@ -4,7 +4,7 @@ import useAuth from "@/auth/store";
 import { useState } from "react";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useTheme } from "@/theme/ThemeProvider";
+import { useTheme } from "@/theme/useTheme";
 import logo from "@/assets/logo.jpg";
 
 function Navbar() {

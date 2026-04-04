@@ -12,6 +12,12 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import useAuth from "@/auth/store";
 import OAuth2Buttons from "@/components/OAuth2Buttons";
+import type { AxiosError } from "axios";
+
+type ApiErrorPayload = {
+  message?: string;
+};
+
 function Login() {
   const [loginData, setLoginData] = useState<LoginData>({
     email: "",
@@ -19,7 +25,7 @@ function Login() {
   });
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<AxiosError<ApiErrorPayload> | null>(null);
 
   const navigate = useNavigate();
   const login = useAuth((state) => state.login);
@@ -60,15 +66,10 @@ function Login() {
 
       //save the current user logged in informations
       //localstorage
-    } catch (error: any) {
-      console.log(error);
-
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorPayload>;
       toast.error("Error !!");
-      if (error?.status == 400) {
-        setError(error);
-      } else {
-        setError(error);
-      }
+      setError(axiosError);
     } finally {
       setLoading(false);
     }

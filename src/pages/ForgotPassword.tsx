@@ -8,6 +8,11 @@ import { Mail } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link } from "react-router";
+import type { AxiosError } from "axios";
+
+type ApiErrorPayload = {
+  message?: string;
+};
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -25,10 +30,11 @@ function ForgotPassword() {
     try {
       await forgotPassword(email.trim());
       toast.success("If the email exists, a reset link has been sent.");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorPayload>;
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
+        axiosError.response?.data?.message ||
+        axiosError.message ||
         "Unable to process request.";
       toast.error(message);
     } finally {
