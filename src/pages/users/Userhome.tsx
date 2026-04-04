@@ -15,7 +15,7 @@ function Userhome() {
       const user1 = await getCurrentUser();
 
       setUser1(user1);
-      toast.success("you are able to access secured apis")
+      toast.success("you are able to access secured apis");
     } catch {
       toast.error("error in getting data");
     }

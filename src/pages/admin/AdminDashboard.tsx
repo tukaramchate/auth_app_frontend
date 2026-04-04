@@ -8,6 +8,8 @@ import {
   createUserByAdmin,
   deleteUserByAdmin,
   getAllUsersByAdmin,
+  getSystemRoles,
+  updateUserByAdmin,
 } from "@/services/AuthService";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -16,6 +18,11 @@ type NewUserForm = {
   name: string;
   email: string;
   password: string;
+};
+
+type UserDraft = {
+  enabled: boolean;
+  role: string;
 };
 
 const initialForm: NewUserForm = {
@@ -27,13 +34,16 @@ const initialForm: NewUserForm = {
 function AdminDashboard() {
   const user = useAuth((state) => state.user);
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [form, setForm] = useState<NewUserForm>(initialForm);
+  const [drafts, setDrafts] = useState<Record<string, UserDraft>>({});
 
   const totalUsers = users.length;
   const enabledUsers = useMemo(
-    () => users.filter((item) => item.enabled).length,
+    () => users.filter((item) => item.enable ?? item.enabled).length,
     [users]
   );
   const adminUsers = useMemo(
@@ -47,8 +57,20 @@ function AdminDashboard() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await getAllUsersByAdmin();
+      const [response, roleList] = await Promise.all([
+        getAllUsersByAdmin(),
+        getSystemRoles(),
+      ]);
       setUsers(response);
+      setRoles(roleList);
+      setDrafts(
+        Object.fromEntries(
+          response.map((item) => [item.id, {
+            enabled: item.enable ?? item.enabled ?? false,
+            role: item.roles?.[0]?.name ?? "USER",
+          }])
+        )
+      );
     } catch {
       toast.error("Failed to load users");
     } finally {
@@ -107,6 +129,31 @@ function AdminDashboard() {
       await loadUsers();
     } catch {
       toast.error("Could not delete user");
+    }
+  };
+
+  const handleSaveUser = async (targetUser: User) => {
+    if (!targetUser.id) {
+      return;
+    }
+
+    const draft = drafts[targetUser.id];
+    if (!draft) {
+      return;
+    }
+
+    setSavingUserId(targetUser.id);
+    try {
+      const updated = await updateUserByAdmin(targetUser.id, {
+        enabled: draft.enabled,
+        roles: [{ name: draft.role }],
+      });
+      setUsers((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      toast.success("User updated");
+    } catch {
+      toast.error("Could not update user");
+    } finally {
+      setSavingUserId(null);
     }
   };
 
@@ -214,10 +261,53 @@ function AdminDashboard() {
                       <td className="py-3">{item.email}</td>
                       <td className="py-3">{item.provider || "-"}</td>
                       <td className="py-3">
-                        {(item.roles ?? []).map((role) => role.name).join(", ") || "-"}
+                        <select
+                          className="rounded-md border bg-background px-2 py-1"
+                          value={drafts[item.id]?.role ?? item.roles?.[0]?.name ?? "USER"}
+                          onChange={(event) =>
+                            setDrafts((current) => ({
+                              ...current,
+                              [item.id]: {
+                                enabled: current[item.id]?.enabled ?? (item.enable ?? item.enabled ?? false),
+                                role: event.target.value,
+                              },
+                            }))
+                          }
+                        >
+                          {roles.map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
                       </td>
-                      <td className="py-3">{item.enabled ? "Enabled" : "Disabled"}</td>
                       <td className="py-3">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={drafts[item.id]?.enabled ?? (item.enable ?? item.enabled ?? false)}
+                            onChange={(event) =>
+                              setDrafts((current) => ({
+                                ...current,
+                                [item.id]: {
+                                  enabled: event.target.checked,
+                                  role: current[item.id]?.role ?? item.roles?.[0]?.name ?? "USER",
+                                },
+                              }))
+                            }
+                          />
+                          <span>{(drafts[item.id]?.enabled ?? (item.enable ?? item.enabled ?? false)) ? "Enabled" : "Disabled"}</span>
+                        </label>
+                      </td>
+                      <td className="py-3">
+                        <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveUser(item)}
+                          disabled={savingUserId === item.id}
+                        >
+                          {savingUserId === item.id ? "Saving..." : "Save"}
+                        </Button>
                         <Button
                           variant="destructive"
                           size="sm"
@@ -225,6 +315,7 @@ function AdminDashboard() {
                         >
                           Delete
                         </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

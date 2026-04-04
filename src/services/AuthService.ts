@@ -3,6 +3,7 @@ import apiClient, { refreshClient } from "@/config/ApiClient";
 import type LoginData from "@/models/LoginData";
 import type LoginResponseData from "@/models/LoginResponseData";
 import type User from "@/models/User";
+import type Session from "@/models/Session";
 //register function
 export const registerUser = async (signupData: RegisterData) => {
   // api  call to server to save data
@@ -79,6 +80,7 @@ type AdminCreateUserPayload = {
   name: string;
   password: string;
   enabled?: boolean;
+  roles?: Array<{ name: string }>;
 };
 
 export const createUserByAdmin = async (payload: AdminCreateUserPayload) => {
@@ -89,6 +91,54 @@ export const createUserByAdmin = async (payload: AdminCreateUserPayload) => {
     enable: payload.enabled ?? true,
   });
   return response.data;
+};
+
+type AdminUpdateUserPayload = {
+  name?: string;
+  image?: string;
+  enabled?: boolean;
+  roles?: Array<{ name: string }>;
+};
+
+export const updateUserByAdmin = async (userId: string, payload: AdminUpdateUserPayload) => {
+  const response = await apiClient.put<User>(`/users/${userId}/admin`, {
+    name: payload.name,
+    image: payload.image,
+    enable: payload.enabled,
+    roles: payload.roles,
+  });
+  return response.data;
+};
+
+export const getSystemRoles = async () => {
+  const response = await apiClient.get<string[]>(`/users/roles`);
+  return response.data;
+};
+
+export const getUserSessions = async () => {
+  const response = await apiClient.get<Session[]>(`/users/me/sessions`);
+  return response.data;
+};
+
+export const revokeCurrentUserSession = async (jti: string) => {
+  await apiClient.delete(`/users/me/sessions/${encodeURIComponent(jti)}`);
+};
+
+export const revokeAllCurrentUserSessions = async () => {
+  await apiClient.delete(`/users/me/sessions`);
+};
+
+export const getUserSessionsByAdmin = async (userId: string) => {
+  const response = await apiClient.get<Session[]>(`/users/${userId}/sessions`);
+  return response.data;
+};
+
+export const revokeUserSessionByAdmin = async (userId: string, jti: string) => {
+  await apiClient.delete(`/users/${userId}/sessions/${encodeURIComponent(jti)}`);
+};
+
+export const revokeAllUserSessionsByAdmin = async (userId: string) => {
+  await apiClient.delete(`/users/${userId}/sessions`);
 };
 
 export const deleteUserByAdmin = async (userId: string) => {
