@@ -7,20 +7,43 @@ import { motion } from "framer-motion";
 import useAuth from "@/auth/store";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import type { AxiosError } from "axios";
 import type Session from "@/models/Session";
 import {
   getUserSessions,
   revokeAllCurrentUserSessions,
   revokeCurrentUserSession,
+  updateCurrentUserProfile,
 } from "@/services/AuthService";
 import toast from "react-hot-toast";
+
+type ApiErrorDetail = {
+  field?: string;
+  reason?: string;
+};
+
+type ApiErrorResponse = {
+  message?: string;
+  details?: ApiErrorDetail[];
+};
 
 function Userprofile() {
   const [isEditing, setIsEditing] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formValues, setFormValues] = useState({ name: "", image: "" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const user = useAuth((state) => state.user);
+  const updateCurrentUser = useAuth((state) => state.updateCurrentUser);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setFormValues({
+      name: user?.name ?? "",
+      image: user?.image ?? "",
+    });
+  }, [user?.name, user?.image]);
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -39,6 +62,61 @@ function Userprofile() {
   }, []);
 
   const enabledValue = (user?.enable ?? user?.enabled) ? "Yes" : "No";
+
+  const parseApiError = (error: unknown) => {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    const responseData = axiosError.response?.data;
+    const nextErrors: Record<string, string> = {};
+
+    (responseData?.details ?? []).forEach((detail) => {
+      if (detail?.field && detail?.reason) {
+        nextErrors[detail.field] = detail.reason;
+      }
+    });
+
+    return {
+      message: responseData?.message || "Failed to update profile",
+      fieldErrors: nextErrors,
+    };
+  };
+
+  const startEditing = () => {
+    setFieldErrors({});
+    setFormValues({
+      name: user?.name ?? "",
+      image: user?.image ?? "",
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setFieldErrors({});
+    setFormValues({
+      name: user?.name ?? "",
+      image: user?.image ?? "",
+    });
+    setIsEditing(false);
+  };
+
+  const saveProfile = async () => {
+    setIsSaving(true);
+    setFieldErrors({});
+    try {
+      const updatedUser = await updateCurrentUserProfile({
+        name: formValues.name.trim(),
+        image: formValues.image.trim() ? formValues.image.trim() : undefined,
+      });
+      updateCurrentUser(updatedUser);
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      const parsed = parseApiError(error);
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(parsed.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="px-4 py-6 sm:p-6 max-w-3xl mx-auto space-y-8">
@@ -62,12 +140,10 @@ function Userprofile() {
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center gap-3">
             <Avatar className="w-28 h-28 border shadow-md">
-              <AvatarImage src="https://api.dicebear.com/7.x/thumbs/svg?seed=user" />
+              <AvatarImage src={user?.image || "https://api.dicebear.com/7.x/thumbs/svg?seed=user"} />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
-            <Button variant="outline" className="rounded-xl px-5 w-full sm:w-auto">
-              Change Picture
-            </Button>
+            <p className="text-sm text-muted-foreground">Update your profile details below.</p>
           </div>
 
           {!isEditing ? (
@@ -75,6 +151,10 @@ function Userprofile() {
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input id="name" value={user?.name} readOnly className="rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">Profile Image URL</Label>
+                <Input id="image" value={user?.image ?? ""} readOnly className="rounded-xl" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -93,7 +173,30 @@ function Userprofile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" value={user?.name} onChange={() => {}} className="rounded-xl" />
+                <Input
+                  id="name"
+                  value={formValues.name}
+                  onChange={(event) =>
+                    setFormValues((current) => ({ ...current, name: event.target.value }))
+                  }
+                  className="rounded-xl"
+                  disabled={isSaving}
+                />
+                {fieldErrors.name && <p className="text-sm text-red-500">{fieldErrors.name}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">Profile Image URL</Label>
+                <Input
+                  id="image"
+                  value={formValues.image}
+                  onChange={(event) =>
+                    setFormValues((current) => ({ ...current, image: event.target.value }))
+                  }
+                  className="rounded-xl"
+                  disabled={isSaving}
+                  placeholder="https://example.com/avatar.png"
+                />
+                {fieldErrors.image && <p className="text-sm text-red-500">{fieldErrors.image}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -111,16 +214,16 @@ function Userprofile() {
           )}
 
           {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)} className="w-full rounded-2xl mt-4 text-lg">
+            <Button onClick={startEditing} className="w-full rounded-2xl mt-4 text-lg">
               Edit Profile
             </Button>
           ) : (
             <div className="flex flex-col sm:flex-row gap-3 mt-4">
-              <Button className="rounded-2xl w-full" onClick={() => setIsEditing(false)}>
+              <Button className="rounded-2xl w-full" onClick={cancelEditing} disabled={isSaving}>
                 Cancel
               </Button>
-              <Button className="rounded-2xl w-full" onClick={() => setIsEditing(false)}>
-                Save
+              <Button className="rounded-2xl w-full" onClick={saveProfile} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save"}
               </Button>
             </div>
           )}

@@ -34,7 +34,6 @@ function Signup() {
   // handling form submit
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log(data);
 
     //validations
     if (data.name.trim() === "") {
@@ -55,7 +54,6 @@ function Signup() {
     //form submit for registrations
     try {
       const result = await registerUser(data);
-      console.log(result);
       toast.success("Registration successful. Please verify your email.");
       setData({
         name: "",
@@ -63,8 +61,7 @@ function Signup() {
         password: "",
       });
       navigate(`/verify-email?email=${encodeURIComponent(result.email)}`);
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("Error in registering the user...");
     }
   };

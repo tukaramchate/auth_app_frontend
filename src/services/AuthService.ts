@@ -4,6 +4,7 @@ import type LoginData from "@/models/LoginData";
 import type LoginResponseData from "@/models/LoginResponseData";
 import type User from "@/models/User";
 import type Session from "@/models/Session";
+import type PageResponse from "@/models/PageResponse";
 //register function
 export const registerUser = async (signupData: RegisterData) => {
   // api  call to server to save data
@@ -29,6 +30,19 @@ export const logoutUser = async () => {
 //get current login user
 export const getCurrentUser = async () => {
   const response = await apiClient.get<User>(`/users/me`);
+  return response.data;
+};
+
+type CurrentUserProfileUpdatePayload = {
+  name: string;
+  image?: string;
+};
+
+export const updateCurrentUserProfile = async (payload: CurrentUserProfileUpdatePayload) => {
+  const response = await apiClient.put<User>(`/users/me`, {
+    name: payload.name,
+    image: payload.image,
+  });
   return response.data;
 };
 
@@ -70,8 +84,26 @@ export const resetPassword = async (token: string, newPassword: string) => {
   return response.data;
 };
 
-export const getAllUsersByAdmin = async () => {
-  const response = await apiClient.get<User[]>(`/users`);
+type UserListQuery = {
+  page?: number;
+  size?: number;
+  sort?: string;
+  q?: string;
+  enabled?: boolean;
+  role?: string;
+};
+
+export const getAllUsersByAdmin = async (query: UserListQuery = {}) => {
+  const response = await apiClient.get<PageResponse<User>>(`/users`, {
+    params: {
+      page: query.page ?? 0,
+      size: query.size ?? 20,
+      sort: query.sort ?? "createdAt,desc",
+      q: query.q,
+      enabled: query.enabled,
+      role: query.role,
+    },
+  });
   return response.data;
 };
 

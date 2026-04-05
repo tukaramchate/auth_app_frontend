@@ -11,7 +11,8 @@ import {
   getSystemRoles,
   updateUserByAdmin,
 } from "@/services/AuthService";
-import { useEffect, useMemo, useState } from "react";
+import type { AxiosError } from "axios";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 type NewUserForm = {
@@ -40,6 +41,11 @@ function AdminDashboard() {
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [form, setForm] = useState<NewUserForm>(initialForm);
   const [drafts, setDrafts] = useState<Record<string, UserDraft>>({});
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(20);
+  const [search, setSearch] = useState("");
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
   const totalUsers = users.length;
   const enabledUsers = useMemo(
@@ -54,18 +60,21 @@ function AdminDashboard() {
     [users]
   );
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async (targetPage = page) => {
     setLoading(true);
     try {
       const [response, roleList] = await Promise.all([
-        getAllUsersByAdmin(),
+        getAllUsersByAdmin({ page: targetPage, size: pageSize, q: search || undefined }),
         getSystemRoles(),
       ]);
-      setUsers(response);
+      setUsers(response.items);
+      setPage(response.page);
+      setTotalPages(response.totalPages);
+      setTotalItems(response.totalItems);
       setRoles(roleList);
       setDrafts(
         Object.fromEntries(
-          response.map((item) => [item.id, {
+          response.items.map((item) => [item.id, {
             enabled: item.enable ?? item.enabled ?? false,
             role: item.roles?.[0]?.name ?? "USER",
           }])
@@ -76,11 +85,11 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, search]);
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    loadUsers(0);
+  }, [loadUsers]);
 
   const handleCreateUser = async () => {
     if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
@@ -98,7 +107,7 @@ function AdminDashboard() {
       });
       toast.success("User created");
       setForm(initialForm);
-      await loadUsers();
+      await loadUsers(page);
     } catch {
       toast.error("Could not create user");
     } finally {
@@ -126,9 +135,11 @@ function AdminDashboard() {
     try {
       await deleteUserByAdmin(targetUser.id);
       toast.success("User deleted");
-      await loadUsers();
-    } catch {
-      toast.error("Could not delete user");
+      await loadUsers(page);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      const message = axiosError.response?.data?.message || "Could not delete user";
+      toast.error(message);
     }
   };
 
@@ -160,6 +171,24 @@ function AdminDashboard() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
       <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>User Search</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="w-full sm:max-w-sm">
+            <Label htmlFor="search-user">Search by name or email</Label>
+            <Input
+              id="search-user"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search users"
+            />
+          </div>
+          <Button onClick={() => loadUsers(0)}>Apply</Button>
+        </CardContent>
+      </Card>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
@@ -242,7 +271,7 @@ function AdminDashboard() {
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading users...</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto space-y-4">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b">
@@ -321,6 +350,29 @@ function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">
+                  Showing page {page + 1} of {Math.max(totalPages, 1)} ({totalItems} users)
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 0 || loading}
+                    onClick={() => loadUsers(page - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page + 1 >= totalPages || loading}
+                    onClick={() => loadUsers(page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

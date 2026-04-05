@@ -20,6 +20,7 @@ type AuthState = {
   login: (loginData: LoginData) => Promise<LoginResponseData>;
   logout: (silent?: boolean) => void;
   checkLogin: () => boolean | undefined;
+  updateCurrentUser: (user: User) => void;
 
   changeLocalLoginData: (
     accessToken: string,
@@ -63,6 +64,14 @@ const useAuth = create<AuthState>()(
           user,
           authStatus,
         });
+      },
+      updateCurrentUser: (user) => {
+        set((state) => ({
+          user: {
+            ...(state.user ?? {}),
+            ...user,
+          } as User,
+        }));
       },
       login: async (loginData) => {
         set({ authLoading: true });
